@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,26 +7,67 @@ import { Avatar, AvatarFallback } from '@/components/ui/avatar';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Icon from '@/components/ui/icon';
 
 const CRMDashboard = () => {
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [activeTab, setActiveTab] = useState('dashboard');
+  const [isCreateRequestOpen, setIsCreateRequestOpen] = useState(false);
+  const [isCreateMeetingOpen, setIsCreateMeetingOpen] = useState(false);
+  const [notifications, setNotifications] = useState<{id: number, title: string, message: string, type: 'info' | 'success' | 'warning' | 'error', timestamp: Date}[]>([]);
+  const [newRequest, setNewRequest] = useState({
+    title: '',
+    description: '',
+    client: '',
+    executor: '',
+    priority: 'Средний',
+    deadline: ''
+  });
 
-  const stats = [
-    { title: 'Активные заявки', value: '24', change: '+12%', icon: 'FileText' },
-    { title: 'Исполнители', value: '8', change: '+2', icon: 'Users' },
-    { title: 'Клиенты', value: '156', change: '+18%', icon: 'Building' },
-    { title: 'Выполнено', value: '89%', change: '+5%', icon: 'CheckCircle' },
-  ];
+  // Real-time notifications simulation
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const randomNotifications = [
+        { title: 'Новая заявка', message: 'Поступила заявка от ООО "Старт"', type: 'info' as const },
+        { title: 'Задача выполнена', message: 'Иванов И. завершил веб-разработку', type: 'success' as const },
+        { title: 'Приближается дедлайн', message: 'До завершения проекта осталось 2 дня', type: 'warning' as const },
+        { title: 'Система обновлена', message: 'CRM система обновлена до версии 2.1', type: 'info' as const },
+      ];
 
-  const recentRequests = [
+      if (Math.random() > 0.7) {
+        const notification = randomNotifications[Math.floor(Math.random() * randomNotifications.length)];
+        setNotifications(prev => [
+          {
+            id: Date.now(),
+            ...notification,
+            timestamp: new Date()
+          },
+          ...prev.slice(0, 4)
+        ]);
+      }
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, []);
+
+  const [stats, setStats] = useState([
+    { title: 'Активные заявки', value: '24', change: '+12%', icon: 'FileText', trend: [85, 89, 92, 88, 95, 91, 89] },
+    { title: 'Исполнители', value: '8', change: '+2', icon: 'Users', trend: [6, 7, 7, 8, 8, 8, 8] },
+    { title: 'Клиенты', value: '156', change: '+18%', icon: 'Building', trend: [120, 135, 142, 148, 151, 154, 156] },
+    { title: 'Выполнено', value: '89%', change: '+5%', icon: 'CheckCircle', trend: [78, 82, 85, 87, 88, 89, 89] },
+  ]);
+
+  const [recentRequests, setRecentRequests] = useState([
     { id: 1, title: 'Разработка веб-сайта', client: 'ООО Техно', executor: 'Иванов И.', status: 'В работе', priority: 'Высокий' },
     { id: 2, title: 'Настройка CRM', client: 'ИП Петров', executor: 'Сидоров С.', status: 'Новая', priority: 'Средний' },
     { id: 3, title: 'Консультация по IT', client: 'Альфа Групп', executor: 'Козлов К.', status: 'Завершена', priority: 'Низкий' },
     { id: 4, title: 'Аудит безопасности', client: 'Бета Лтд', executor: 'Морозов М.', status: 'В работе', priority: 'Высокий' },
-  ];
+  ]);
 
   const executors = [
     { name: 'Иванов И.И.', role: 'Веб-разработчик', tasks: 5, rating: 4.8 },
@@ -35,12 +76,51 @@ const CRMDashboard = () => {
     { name: 'Морозов М.М.', role: 'Специалист по безопасности', tasks: 2, rating: 5.0 },
   ];
 
-  const meetings = [
+  const [meetings, setMeetings] = useState([
     { time: '09:00', title: 'Встреча с клиентом ООО Техно', type: 'client' },
     { time: '11:30', title: 'Планерка команды', type: 'team' },
     { time: '14:00', title: 'Презентация проекта', type: 'presentation' },
     { time: '16:00', title: 'Консультация по CRM', type: 'consultation' },
-  ];
+  ]);
+
+  // Interactive chart data
+  const chartData = {
+    labels: ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'],
+    datasets: [
+      {
+        label: 'Выполненные задачи',
+        data: [12, 19, 3, 5, 2, 3, 9],
+        color: 'hsl(var(--primary))',
+      },
+      {
+        label: 'Новые заявки',
+        data: [2, 3, 20, 5, 1, 4, 6],
+        color: 'hsl(var(--secondary))',
+      }
+    ]
+  };
+
+  const handleCreateRequest = () => {
+    if (newRequest.title && newRequest.client) {
+      const request = {
+        id: recentRequests.length + 1,
+        ...newRequest,
+        status: 'Новая'
+      };
+      setRecentRequests(prev => [request, ...prev]);
+      setNewRequest({ title: '', description: '', client: '', executor: '', priority: 'Средний', deadline: '' });
+      setIsCreateRequestOpen(false);
+      
+      // Add success notification
+      setNotifications(prev => [{
+        id: Date.now(),
+        title: 'Заявка создана',
+        message: `Создана заявка "${newRequest.title}"`,
+        type: 'success',
+        timestamp: new Date()
+      }, ...prev.slice(0, 4)]);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -60,6 +140,65 @@ const CRMDashboard = () => {
     }
   };
 
+  const MiniChart = ({ data }: { data: number[] }) => {
+    const max = Math.max(...data);
+    const min = Math.min(...data);
+    
+    return (
+      <div className="flex items-end space-x-1 h-8">
+        {data.map((value, index) => {
+          const height = ((value - min) / (max - min || 1)) * 100;
+          return (
+            <div
+              key={index}
+              className="bg-primary/20 rounded-sm w-2"
+              style={{ height: `${Math.max(height, 10)}%` }}
+            />
+          );
+        })}
+      </div>
+    );
+  };
+
+  const InteractiveChart = () => {
+    return (
+      <div className="space-y-4">
+        <div className="grid grid-cols-7 gap-2 text-xs font-medium text-slate-500">
+          {chartData.labels.map(label => (
+            <div key={label} className="text-center">{label}</div>
+          ))}
+        </div>
+        
+        {chartData.datasets.map((dataset, datasetIndex) => (
+          <div key={datasetIndex} className="space-y-2">
+            <div className="flex items-center space-x-2">
+              <div className={`w-3 h-3 rounded-full ${datasetIndex === 0 ? 'bg-primary' : 'bg-secondary'}`} />
+              <span className="text-sm font-medium">{dataset.label}</span>
+            </div>
+            <div className="grid grid-cols-7 gap-2 h-20">
+              {dataset.data.map((value, index) => {
+                const maxValue = Math.max(...dataset.data);
+                const height = (value / maxValue) * 100;
+                return (
+                  <div key={index} className="flex flex-col justify-end">
+                    <div
+                      className={`rounded-t-sm transition-all hover:opacity-80 cursor-pointer ${
+                        datasetIndex === 0 ? 'bg-primary' : 'bg-secondary'
+                      }`}
+                      style={{ height: `${height}%` }}
+                      title={`${dataset.label}: ${value}`}
+                    />
+                    <div className="text-xs text-center mt-1 text-slate-600">{value}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  };
+
   return (
     <div className="min-h-screen bg-slate-50">
       {/* Header */}
@@ -75,10 +214,48 @@ const CRMDashboard = () => {
             </div>
           </div>
           <div className="flex items-center space-x-4">
-            <Button variant="outline" size="sm">
-              <Icon name="Bell" className="h-4 w-4 mr-2" />
-              Уведомления
-            </Button>
+            {/* Notifications */}
+            <div className="relative">
+              <Button variant="outline" size="sm">
+                <Icon name="Bell" className="h-4 w-4 mr-2" />
+                Уведомления
+                {notifications.length > 0 && (
+                  <Badge variant="destructive" className="ml-2 px-1 min-w-[1.25rem] h-5">
+                    {notifications.length}
+                  </Badge>
+                )}
+              </Button>
+              
+              {/* Notification dropdown */}
+              {notifications.length > 0 && (
+                <div className="absolute right-0 top-full mt-2 w-80 bg-white rounded-lg shadow-lg border border-slate-200 z-50">
+                  <div className="p-3 border-b border-slate-200">
+                    <h3 className="font-semibold text-slate-900">Уведомления</h3>
+                  </div>
+                  <div className="max-h-64 overflow-y-auto">
+                    {notifications.map((notification) => (
+                      <div key={notification.id} className="p-3 border-b border-slate-100 hover:bg-slate-50">
+                        <div className="flex items-start space-x-2">
+                          <div className={`w-2 h-2 rounded-full mt-2 ${
+                            notification.type === 'success' ? 'bg-green-500' :
+                            notification.type === 'warning' ? 'bg-yellow-500' :
+                            notification.type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+                          }`} />
+                          <div className="flex-1">
+                            <h4 className="font-medium text-slate-900">{notification.title}</h4>
+                            <p className="text-sm text-slate-600">{notification.message}</p>
+                            <p className="text-xs text-slate-400 mt-1">
+                              {notification.timestamp.toLocaleTimeString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+            
             <Avatar>
               <AvatarFallback>АД</AvatarFallback>
             </Avatar>
@@ -122,13 +299,13 @@ const CRMDashboard = () => {
           <Tabs value={activeTab} onValueChange={setActiveTab}>
             {/* Dashboard Tab */}
             <TabsContent value="dashboard" className="space-y-6">
-              {/* Stats Cards */}
+              {/* Stats Cards with Mini Charts */}
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {stats.map((stat, index) => (
                   <Card key={index} className="hover:shadow-lg transition-shadow">
                     <CardContent className="p-6">
-                      <div className="flex items-center justify-between">
-                        <div>
+                      <div className="flex items-center justify-between mb-4">
+                        <div className="flex-1">
                           <p className="text-sm font-medium text-slate-600">{stat.title}</p>
                           <p className="text-3xl font-bold text-slate-900 mt-1">{stat.value}</p>
                           <p className="text-sm text-green-600 mt-1">{stat.change}</p>
@@ -137,6 +314,7 @@ const CRMDashboard = () => {
                           <Icon name={stat.icon} className="h-6 w-6 text-primary" />
                         </div>
                       </div>
+                      <MiniChart data={stat.trend} />
                     </CardContent>
                   </Card>
                 ))}
@@ -153,7 +331,7 @@ const CRMDashboard = () => {
                   </CardHeader>
                   <CardContent>
                     <div className="space-y-4">
-                      {recentRequests.map((request) => (
+                      {recentRequests.slice(0, 5).map((request) => (
                         <div key={request.id} className="flex items-center justify-between p-4 border border-slate-200 rounded-lg hover:bg-slate-50 transition-colors">
                           <div className="flex-1">
                             <h4 className="font-semibold text-slate-900">{request.title}</h4>
@@ -194,98 +372,6 @@ const CRMDashboard = () => {
               </div>
             </TabsContent>
 
-            {/* Executors Tab */}
-            <TabsContent value="executors" className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-slate-900">Исполнители</h2>
-                <Button>
-                  <Icon name="Plus" className="h-4 w-4 mr-2" />
-                  Добавить исполнителя
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {executors.map((executor, index) => (
-                  <Card key={index} className="hover:shadow-lg transition-shadow">
-                    <CardContent className="p-6">
-                      <div className="flex items-center space-x-4">
-                        <Avatar className="h-16 w-16">
-                          <AvatarFallback className="text-lg">
-                            {executor.name.split(' ').map(n => n[0]).join('')}
-                          </AvatarFallback>
-                        </Avatar>
-                        <div className="flex-1">
-                          <h4 className="font-semibold text-slate-900">{executor.name}</h4>
-                          <p className="text-sm text-slate-600">{executor.role}</p>
-                          <div className="flex items-center space-x-4 mt-2">
-                            <div className="flex items-center space-x-1">
-                              <Icon name="CheckSquare" className="h-4 w-4 text-slate-500" />
-                              <span className="text-sm text-slate-600">{executor.tasks} задач</span>
-                            </div>
-                            <div className="flex items-center space-x-1">
-                              <Icon name="Star" className="h-4 w-4 text-yellow-500" />
-                              <span className="text-sm text-slate-600">{executor.rating}</span>
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            </TabsContent>
-
-            {/* Calendar Tab */}
-            <TabsContent value="calendar" className="space-y-6">
-              <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-slate-900">Календарь встреч</h2>
-                <Button>
-                  <Icon name="Plus" className="h-4 w-4 mr-2" />
-                  Запланировать встречу
-                </Button>
-              </div>
-
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Календарь</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <Calendar
-                      mode="single"
-                      selected={selectedDate}
-                      onSelect={setSelectedDate}
-                      className="rounded-md border"
-                    />
-                  </CardContent>
-                </Card>
-
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Встречи на сегодня</CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="space-y-4">
-                      {meetings.map((meeting, index) => (
-                        <div key={index} className="flex items-center space-x-4 p-3 border border-slate-200 rounded-lg">
-                          <div className="bg-primary/10 p-2 rounded-lg">
-                            <Icon name="Clock" className="h-4 w-4 text-primary" />
-                          </div>
-                          <div className="flex-1">
-                            <p className="font-semibold text-slate-900">{meeting.time}</p>
-                            <p className="text-sm text-slate-600">{meeting.title}</p>
-                          </div>
-                          <Button variant="outline" size="sm">
-                            Открыть
-                          </Button>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </TabsContent>
-
             {/* Requests Tab */}
             <TabsContent value="requests" className="space-y-6">
               <div className="flex justify-between items-center">
@@ -302,10 +388,121 @@ const CRMDashboard = () => {
                       <SelectItem value="completed">Завершенные</SelectItem>
                     </SelectContent>
                   </Select>
-                  <Button>
-                    <Icon name="Plus" className="h-4 w-4 mr-2" />
-                    Создать заявку
-                  </Button>
+                  
+                  {/* Create Request Modal */}
+                  <Dialog open={isCreateRequestOpen} onOpenChange={setIsCreateRequestOpen}>
+                    <DialogTrigger asChild>
+                      <Button>
+                        <Icon name="Plus" className="h-4 w-4 mr-2" />
+                        Создать заявку
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[600px]">
+                      <DialogHeader>
+                        <DialogTitle>Создать новую заявку</DialogTitle>
+                        <DialogDescription>
+                          Заполните информацию о новой заявке для обработки
+                        </DialogDescription>
+                      </DialogHeader>
+                      <div className="grid gap-4 py-4">
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="title" className="text-right">
+                            Название
+                          </Label>
+                          <Input
+                            id="title"
+                            value={newRequest.title}
+                            onChange={(e) => setNewRequest(prev => ({...prev, title: e.target.value}))}
+                            className="col-span-3"
+                            placeholder="Название заявки"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="client" className="text-right">
+                            Клиент
+                          </Label>
+                          <Input
+                            id="client"
+                            value={newRequest.client}
+                            onChange={(e) => setNewRequest(prev => ({...prev, client: e.target.value}))}
+                            className="col-span-3"
+                            placeholder="Название компании"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="executor" className="text-right">
+                            Исполнитель
+                          </Label>
+                          <Select 
+                            value={newRequest.executor}
+                            onValueChange={(value) => setNewRequest(prev => ({...prev, executor: value}))}
+                          >
+                            <SelectTrigger className="col-span-3">
+                              <SelectValue placeholder="Выберите исполнителя" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {executors.map((executor) => (
+                                <SelectItem key={executor.name} value={executor.name}>
+                                  {executor.name} - {executor.role}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="priority" className="text-right">
+                            Приоритет
+                          </Label>
+                          <Select 
+                            value={newRequest.priority}
+                            onValueChange={(value) => setNewRequest(prev => ({...prev, priority: value}))}
+                          >
+                            <SelectTrigger className="col-span-3">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Низкий">Низкий</SelectItem>
+                              <SelectItem value="Средний">Средний</SelectItem>
+                              <SelectItem value="Высокий">Высокий</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid grid-cols-4 items-center gap-4">
+                          <Label htmlFor="deadline" className="text-right">
+                            Дедлайн
+                          </Label>
+                          <Input
+                            id="deadline"
+                            type="date"
+                            value={newRequest.deadline}
+                            onChange={(e) => setNewRequest(prev => ({...prev, deadline: e.target.value}))}
+                            className="col-span-3"
+                          />
+                        </div>
+                        <div className="grid grid-cols-4 items-start gap-4">
+                          <Label htmlFor="description" className="text-right">
+                            Описание
+                          </Label>
+                          <Textarea
+                            id="description"
+                            value={newRequest.description}
+                            onChange={(e) => setNewRequest(prev => ({...prev, description: e.target.value}))}
+                            className="col-span-3"
+                            placeholder="Подробное описание заявки"
+                            rows={4}
+                          />
+                        </div>
+                      </div>
+                      <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsCreateRequestOpen(false)}>
+                          Отмена
+                        </Button>
+                        <Button onClick={handleCreateRequest}>
+                          Создать заявку
+                        </Button>
+                      </DialogFooter>
+                    </DialogContent>
+                  </Dialog>
                 </div>
               </div>
 
@@ -360,10 +557,10 @@ const CRMDashboard = () => {
               </Card>
             </TabsContent>
 
-            {/* Reports Tab */}
+            {/* Reports Tab with Interactive Charts */}
             <TabsContent value="reports" className="space-y-6">
               <div className="flex justify-between items-center">
-                <h2 className="text-2xl font-bold text-slate-900">Отчеты</h2>
+                <h2 className="text-2xl font-bold text-slate-900">Отчеты и аналитика</h2>
                 <Button>
                   <Icon name="Download" className="h-4 w-4 mr-2" />
                   Экспорт данных
@@ -371,6 +568,15 @@ const CRMDashboard = () => {
               </div>
 
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Интерактивная статистика</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <InteractiveChart />
+                  </CardContent>
+                </Card>
+
                 <Card>
                   <CardHeader>
                     <CardTitle>Статистика выполнения</CardTitle>
@@ -425,6 +631,165 @@ const CRMDashboard = () => {
                               <span className="text-sm">{executor.rating}</span>
                             </div>
                           </div>
+                        </div>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Тренды по месяцам</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      <div className="grid grid-cols-6 gap-4 text-xs text-slate-500">
+                        {['Янв', 'Фев', 'Мар', 'Апр', 'Май', 'Июн'].map(month => (
+                          <div key={month} className="text-center">{month}</div>
+                        ))}
+                      </div>
+                      <div className="grid grid-cols-6 gap-4 h-32">
+                        {[65, 78, 82, 91, 89, 95].map((value, index) => (
+                          <div key={index} className="flex flex-col justify-end">
+                            <div
+                              className="bg-gradient-to-t from-primary to-primary/50 rounded-t-sm hover:opacity-80 cursor-pointer transition-all"
+                              style={{ height: `${value}%` }}
+                              title={`${value}% выполнения`}
+                            />
+                            <div className="text-xs text-center mt-2 text-slate-600">{value}%</div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            </TabsContent>
+
+            {/* Other tabs remain the same */}
+            <TabsContent value="executors" className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-slate-900">Исполнители</h2>
+                <Button>
+                  <Icon name="Plus" className="h-4 w-4 mr-2" />
+                  Добавить исполнителя
+                </Button>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {executors.map((executor, index) => (
+                  <Card key={index} className="hover:shadow-lg transition-shadow">
+                    <CardContent className="p-6">
+                      <div className="flex items-center space-x-4">
+                        <Avatar className="h-16 w-16">
+                          <AvatarFallback className="text-lg">
+                            {executor.name.split(' ').map(n => n[0]).join('')}
+                          </AvatarFallback>
+                        </Avatar>
+                        <div className="flex-1">
+                          <h4 className="font-semibold text-slate-900">{executor.name}</h4>
+                          <p className="text-sm text-slate-600">{executor.role}</p>
+                          <div className="flex items-center space-x-4 mt-2">
+                            <div className="flex items-center space-x-1">
+                              <Icon name="CheckSquare" className="h-4 w-4 text-slate-500" />
+                              <span className="text-sm text-slate-600">{executor.tasks} задач</span>
+                            </div>
+                            <div className="flex items-center space-x-1">
+                              <Icon name="Star" className="h-4 w-4 text-yellow-500" />
+                              <span className="text-sm text-slate-600">{executor.rating}</span>
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </TabsContent>
+
+            {/* Calendar Tab */}
+            <TabsContent value="calendar" className="space-y-6">
+              <div className="flex justify-between items-center">
+                <h2 className="text-2xl font-bold text-slate-900">Календарь встреч</h2>
+                <Dialog open={isCreateMeetingOpen} onOpenChange={setIsCreateMeetingOpen}>
+                  <DialogTrigger asChild>
+                    <Button>
+                      <Icon name="Plus" className="h-4 w-4 mr-2" />
+                      Запланировать встречу
+                    </Button>
+                  </DialogTrigger>
+                  <DialogContent>
+                    <DialogHeader>
+                      <DialogTitle>Запланировать встречу</DialogTitle>
+                      <DialogDescription>
+                        Создайте новую встречу в календаре
+                      </DialogDescription>
+                    </DialogHeader>
+                    <div className="grid gap-4 py-4">
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="meeting-title" className="text-right">
+                          Название
+                        </Label>
+                        <Input id="meeting-title" className="col-span-3" placeholder="Название встречи" />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="meeting-time" className="text-right">
+                          Время
+                        </Label>
+                        <Input id="meeting-time" type="time" className="col-span-3" />
+                      </div>
+                      <div className="grid grid-cols-4 items-center gap-4">
+                        <Label htmlFor="meeting-date" className="text-right">
+                          Дата
+                        </Label>
+                        <Input id="meeting-date" type="date" className="col-span-3" />
+                      </div>
+                    </div>
+                    <DialogFooter>
+                      <Button variant="outline" onClick={() => setIsCreateMeetingOpen(false)}>
+                        Отмена
+                      </Button>
+                      <Button onClick={() => setIsCreateMeetingOpen(false)}>
+                        Создать встречу
+                      </Button>
+                    </DialogFooter>
+                  </DialogContent>
+                </Dialog>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Календарь</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <Calendar
+                      mode="single"
+                      selected={selectedDate}
+                      onSelect={setSelectedDate}
+                      className="rounded-md border"
+                    />
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Встречи на сегодня</CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="space-y-4">
+                      {meetings.map((meeting, index) => (
+                        <div key={index} className="flex items-center space-x-4 p-3 border border-slate-200 rounded-lg">
+                          <div className="bg-primary/10 p-2 rounded-lg">
+                            <Icon name="Clock" className="h-4 w-4 text-primary" />
+                          </div>
+                          <div className="flex-1">
+                            <p className="font-semibold text-slate-900">{meeting.time}</p>
+                            <p className="text-sm text-slate-600">{meeting.title}</p>
+                          </div>
+                          <Button variant="outline" size="sm">
+                            Открыть
+                          </Button>
                         </div>
                       ))}
                     </div>
